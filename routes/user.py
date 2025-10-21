@@ -1,11 +1,21 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.dialects.postgresql import UUID
+
 
 class UserRegister(BaseModel):
-    pass
+    username: str
+    email: EmailStr
+    password: str
+
 
 class UserLogin(BaseModel):
-    pass
+    email: EmailStr
+    password: str
 
 
 class UserPublin(BaseModel):
-    pass
+    id: UUID
+    email: EmailStr
+
+class VerifyUser:
+    code: str

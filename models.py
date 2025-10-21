@@ -1,4 +1,5 @@
 import uuid
+import random
 from database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -24,13 +25,13 @@ class BaseModel:
     )
 
 
-class User(BaseModel, Base):
+class User(Base, BaseModel):
     __tablename__ = "users"
 
-    username = Column(String())
-    phone_number = Column(String(), nullable=True)
-    email = Column(String(), unique=True, nullable=False)
-    photo = Column(String(), nullable=True)
+    username = Column(String)
+    phone_number = Column(String, nullable=True)
+    email = Column(String, unique=True, nullable=False)
+    photo = Column(String, nullable=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=False)
 
@@ -38,11 +39,18 @@ class User(BaseModel, Base):
     posts = relationship("Post")
     comments = relationship("Comment")
 
+    def generate_code(self, db):
+        code = "".join([str(random.randint(0, 100) % 10) for _ in range(5)])
+        verify = VerifyUser(code=code, user_id=self.id)
+        db.add(verify)
+        db.commit()
+        return code
 
-class VerifyUser(BaseModel, Base):
+
+class VerifyUser(Base, BaseModel):
     __tablename__ = "verifies"
 
-    code = Column(INTEGER, nullable=False)
+    code = Column(String, nullable=False)
     is_verifyied = Column(Boolean, default=False)
     expiration_time = Column(DATETIME, nullable=True)
 
@@ -50,7 +58,7 @@ class VerifyUser(BaseModel, Base):
     user = relationship("User", back_populates="codes")
 
 
-class Post(BaseModel, Base):
+class Post(Base, BaseModel):
     __tablename__ = "posts"
 
     caption = Column(TEXT)
@@ -62,7 +70,7 @@ class Post(BaseModel, Base):
     likes = relationship("PostLike", back_populates="post")
 
 
-class Comment(BaseModel, Base):
+class Comment(Base, BaseModel):
     __tablename__ = "comments"
 
     comment = Column(TEXT)
@@ -78,7 +86,7 @@ class Comment(BaseModel, Base):
     child = relationship("Comment")
 
 
-class PostLike(BaseModel, Base):
+class PostLike(Base, BaseModel):
     __tablename__ = "postlikes"
 
     post_id = Column(INTEGER, ForeignKey("posts.id"))
@@ -88,7 +96,7 @@ class PostLike(BaseModel, Base):
     user = relationship("User")
 
 
-class CommentLike(BaseModel, Base):
+class CommentLike(Base, BaseModel):
     __tablename__ = "commentlikes"
 
     user_id = Column(INTEGER, ForeignKey("users.id"))
@@ -98,7 +106,7 @@ class CommentLike(BaseModel, Base):
     comment = relationship("Comment")
 
 
-class Follow(BaseModel, Base):
+class Follow(Base, BaseModel):
     __tablename__ = "follows"
 
     follower_id = Column(INTEGER, ForeignKey("users.id"))
