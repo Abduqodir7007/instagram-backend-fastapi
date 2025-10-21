@@ -1,11 +1,11 @@
-from database import Base
+from pydantic import BaseModel
 
-
-class UserRegister(Base):
+class UserRegister(BaseModel):
     pass
 
-class UserLogin(Base):
+class UserLogin(BaseModel):
     pass
 
-class UserPublin(Base):
+
+class UserPublin(BaseModel):
     pass

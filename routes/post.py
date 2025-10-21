@@ -1,7 +1,5 @@
-from database import Base
+from pydantic import BaseModel
 
 
-
-class PostCreate(Base):
+class PostCreate(BaseModel):
     pass
-

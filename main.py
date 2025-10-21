@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from database import engine, Base
-from endpoints.auth import routes
+
+from endpoints import auth, post
 
 app = FastAPI()
 
@@ -11,5 +12,5 @@ async def startup():
         await conn.run_sync(Base.metadata.create_all)
 
 
-app.include_router(routes)
-    
+app.include_router(auth.routes)
+app.include_router(post.routes)
