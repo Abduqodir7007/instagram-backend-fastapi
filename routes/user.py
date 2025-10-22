@@ -13,9 +13,16 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserPublin(BaseModel):
-    id: UUID
-    email: EmailStr
+class UserPublic(BaseModel):
+    # id: UUID
+    # email: EmailStr
+    pass
+
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+
 
 class VerifyUser:
     code: str

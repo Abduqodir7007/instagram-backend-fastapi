@@ -10,7 +10,7 @@ from sqlalchemy import (
     String,
     ForeignKey,
     Boolean,
-    DATETIME,
+    DateTime,
     TEXT,
 )
 
@@ -33,7 +33,8 @@ class User(Base, BaseModel):
     email = Column(String, unique=True, nullable=False)
     photo = Column(String, nullable=True)
     first_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=True)
+    password = Column(String, nullable=False)
 
     codes = relationship("VerifyUser")
     posts = relationship("Post")
@@ -52,7 +53,7 @@ class VerifyUser(Base, BaseModel):
 
     code = Column(String, nullable=False)
     is_verifyied = Column(Boolean, default=False)
-    expiration_time = Column(DATETIME, nullable=True)
+    
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     user = relationship("User", back_populates="codes")
@@ -89,28 +90,28 @@ class Comment(Base, BaseModel):
 class PostLike(Base, BaseModel):
     __tablename__ = "postlikes"
 
-    post_id = Column(INTEGER, ForeignKey("posts.id"))
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"))
     post = relationship("Post", back_populates="likes")
 
-    user_id = Column(INTEGER, ForeignKey("users.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     user = relationship("User")
 
 
 class CommentLike(Base, BaseModel):
     __tablename__ = "commentlikes"
 
-    user_id = Column(INTEGER, ForeignKey("users.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     user = relationship("User")
 
-    comment_id = Column(INTEGER, ForeignKey("comments.id"))
+    comment_id = Column(UUID(as_uuid=True), ForeignKey("comments.id"))
     comment = relationship("Comment")
 
 
 class Follow(Base, BaseModel):
     __tablename__ = "follows"
 
-    follower_id = Column(INTEGER, ForeignKey("users.id"))
+    follower_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     follower = relationship("User")
 
-    followee_id = Column(INTEGER, ForeignKey("users.id"))
-    followee = relationship("User")
+    # followee_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    # followee = relationship("User")
