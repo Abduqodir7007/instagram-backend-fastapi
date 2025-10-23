@@ -36,25 +36,25 @@ class User(Base, BaseModel):
     last_name = Column(String, nullable=True)
     password = Column(String, nullable=False)
 
-    codes = relationship("VerifyUser")
+    codes = relationship("VerifyUsers", back_populates="user")
     posts = relationship("Post")
     comments = relationship("Comment")
 
-    def generate_code(self, db):
+    async def generate_code(self, db):
         code = "".join([str(random.randint(0, 100) % 10) for _ in range(5)])
-        verify = VerifyUser(code=code, user_id=self.id)
+        verify = VerifyUsers(code=code, user_id=self.id)
         db.add(verify)
-        db.commit()
+        await db.commit()
+
         return code
 
 
-class VerifyUser(Base, BaseModel):
+class VerifyUsers(Base, BaseModel):
     __tablename__ = "verifies"
 
     code = Column(String, nullable=False)
     is_verifyied = Column(Boolean, default=False)
-    
-
+    expiration_time = Column(DateTime, nullable=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     user = relationship("User", back_populates="codes")
 

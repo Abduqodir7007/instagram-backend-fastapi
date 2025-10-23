@@ -1,6 +1,6 @@
+import events
 from fastapi import FastAPI
 from database import engine, Base
-
 from endpoints import auth, post
 
 app = FastAPI()

@@ -14,9 +14,8 @@ class UserLogin(BaseModel):
 
 
 class UserPublic(BaseModel):
-    # id: UUID
-    # email: EmailStr
-    pass
+    id: str
+    email: EmailStr
 
 
 class Token(BaseModel):
@@ -24,5 +23,5 @@ class Token(BaseModel):
     refresh_token: str
 
 
-class VerifyUser:
+class VerifyUser(BaseModel):
     code: str

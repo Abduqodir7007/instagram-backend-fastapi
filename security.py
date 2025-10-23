@@ -1,12 +1,14 @@
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from database import get_db
 from config import settings
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from fastapi_mail import MessageSchema, FastMail, ConnectionConfig
-
+from models import User
+from sqlalchemy.future import select
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -21,7 +23,7 @@ conf = ConnectionConfig(
 )
 
 pass_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 def verify_password(plain_pass: str, hashed_pass: str):
@@ -32,7 +34,9 @@ def hash_password(password: str):
     return pass_context.hash(password)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+):
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=settings.JWT_ALGORITHM
@@ -42,11 +46,19 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
             )
-        return email
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
         )
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User does not exists"
+        )
+    return user
 
 
 def create_access_token(data: dict):
