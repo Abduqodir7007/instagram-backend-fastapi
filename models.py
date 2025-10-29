@@ -63,8 +63,8 @@ class Post(Base, BaseModel):
     __tablename__ = "posts"
 
     caption = Column(TEXT)
-    image = Column(String)
-
+    image = Column(String, nullable=True)   
+    
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     user = relationship("User", back_populates="posts")
 

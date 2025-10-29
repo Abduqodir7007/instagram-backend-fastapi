@@ -13,8 +13,7 @@ from security import (
     hash_password,
     create_access_token,
     create_refresh_token,
-    send_verification_email,
-    send_email,
+    send_verification_email
 )
 
 
