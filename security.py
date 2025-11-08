@@ -1,3 +1,4 @@
+import secrets
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -9,6 +10,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi_mail import MessageSchema, FastMail, ConnectionConfig
 from models import User
 from sqlalchemy.future import select
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -101,3 +104,37 @@ async def send_verification_email(recipient_email: str, verification_code: str):
 
     fm = FastMail(conf)
     await fm.send_message(message)
+
+
+async def verify_google_id(google_id: str, db: AsyncSession):
+    try:
+        payload = id_token.verify_oauth2_token(
+            google_id, requests.Request(), settings.CLIENT_ID
+        )
+
+        if payload and payload.get(email := "email"):
+            email = payload.get("email")
+
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalars().first()
+
+        if not user:
+            hashed_pw = hash_password(secrets.token_urlsafe(16))
+            user = User(
+                email=email,
+                username=payload.get("name", email.split("@")[0]),
+                password=hashed_pw,  # Google accounts are pre-verified
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+        access_token = create_access_token({"sub": user.email})
+        refresh_token = create_refresh_token({"sub": user.email})
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+    except ValueError as e:
+        return f"Error: {e}"

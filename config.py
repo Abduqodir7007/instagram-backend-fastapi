@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     POSTGRES_DB: str | None = None
     POSTGRES_USER: str | None = None
     POSTGRES_PASSWORD: str | None = None
+    
+    CLIENT_SECRET: str | None = None
+    CLIENT_ID: str | None = None
 
     MAIL_USERNAME: str | None = None
     MAIL_PASSWORD: str | None = None
