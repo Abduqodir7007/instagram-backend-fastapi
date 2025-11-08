@@ -1,19 +1,11 @@
 from fastapi import APIRouter, Depends, Request, status, HTTPException
-from routes.user import UserRegister, UserLogin, UserPublic, VerifyUser, Token
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from authlib.integrations.starlette_client import OAuth
 from config import settings
-from models import User
 from sqlalchemy.future import select
 import secrets
 from security import (
-    get_current_user,
-    verify_password,
-    hash_password,
-    create_access_token,
-    create_refresh_token,
-    send_verification_email,
     verify_google_id,
 )
 
