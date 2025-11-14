@@ -1,14 +1,41 @@
 from fastapi import APIRouter
-from routes.post import PostCreate, CommentCreate, PostLikeCreate, CommentLikeCreate
+from routes.post import (
+    PostCreate,
+    CommentCreate,
+    PostLikeCreate,
+    CommentLikeCreate,
+    PostResponse,
+)
 from security import get_current_user
 from fastapi import Depends, status, HTTPException
 from database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import User, Post, PostLike, CommentLike, Comment
 from sqlalchemy.future import select
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
+from uuid import UUID
 
 routes = APIRouter(prefix="/post", tags=["Posts"])
+
+
+@routes.get("/{uuid}", status_code=status.HTTP_200_OK)
+async def get_posts(
+    uuid: UUID, db: AsyncSession = Depends(get_db), response_model=PostResponse
+):
+    result = await db.execute(select(Post).where(Post.id == uuid))
+    post = result.scalars().first()
+
+    likes_count = await db.scalar(
+        select(func.count(PostLike.id)).filter(PostLike.post_id == post.id)
+    )
+
+    return {
+        "id": post.id,
+        "caption": post.caption,
+        "user": post.user.id,
+        "likes_count": likes_count,
+    }
 
 
 @routes.post("/", status_code=status.HTTP_201_CREATED)
@@ -26,7 +53,9 @@ async def create_post(
 
 
 @routes.post("/comment", status_code=status.HTTP_201_CREATED)
-async def create_comment(comment_in: CommentCreate, db: AsyncSession = Depends(get_db)):
+async def post_comment_create(
+    comment_in: CommentCreate, db: AsyncSession = Depends(get_db)
+):
 
     result = await db.execute(select(Post).where(Post.id == comment_in.post_id))
 
@@ -71,37 +100,3 @@ async def post_like(
         db.add(new_post_like)
         await db.commit()
         return {"msg": "You liked the post"}
-
-
-@routes.post("/comment/create-delete-like/{id}", status_code=status.HTTP_201_CREATED)
-async def comment_like(
-    like_in: CommentLikeCreate,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-
-    comment_result = await db.execute(
-        select(Comment).where(Comment.id == like_in.comment_id)
-    )
-
-    if not comment_result.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Comment does not exists"
-        )
-
-    result = await db.execute(
-        select(CommentLike).where(
-            CommentLike.user_id == user.id, CommentLike.comment_id == like_in.comment_id
-        )
-    )
-    existing_comment = result.scalars().first()
-
-    if result.scalars().first():
-        await db.delete(existing_comment)
-        await db.commit()
-        return {"msg": "You disliked the comment"}
-    else:
-        new_comment_like = CommentLike(user_id=user.id, comment_id=like_in.comment_id)
-        db.add(new_comment_like)
-        await db.commit()
-        return {"msg": "You liked the comment"}

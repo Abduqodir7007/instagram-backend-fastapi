@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     
     CLIENT_SECRET: str | None = None
     CLIENT_ID: str | None = None
+    SECRET_KEY: str | None = None
 
     MAIL_USERNAME: str | None = None
     MAIL_PASSWORD: str | None = None

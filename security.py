@@ -123,7 +123,7 @@ async def verify_google_id(google_id: str, db: AsyncSession):
             user = User(
                 email=email,
                 username=payload.get("name", email.split("@")[0]),
-                password=hashed_pw,  # Google accounts are pre-verified
+                password=hashed_pw,
             )
             db.add(user)
             await db.commit()
