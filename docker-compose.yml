@@ -1,0 +1,26 @@
+services:
+    web:
+        container_name: fast_api_app
+        command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+        # this volume should be removed in the production
+        # because we do not updata the code automatically in production.
+        volumes:
+            - .:/app/project
+        ports:
+            - "8000:8000"
+        env_file:
+            - .env
+        depends_on:
+            - db
+    db:
+        container_name: Database
+        image: postgres:15
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        env_file:
+            - .env
+        ports:
+            - "5432:5432"
+
+volumes:
+    postgres_data:
